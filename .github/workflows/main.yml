@@ -1,0 +1,30 @@
+name: Daily Asaxiy Scrape
+
+on:
+  schedule:
+    - cron: "0 1 * * *"   # UTC 01:00 = Toshkent vaqti bilan 06:00
+  workflow_dispatch:        # qo'lda ham ishga tushirish imkoniyati
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Kutubxonalarni o'rnatish
+        run: pip install -r requirements.txt
+
+      - name: Scraperni ishga tushirish
+        run: python main.py
+
+      - name: Yangilangan bazani commit qilish
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add asaxiy.db asaxiy_scraper.log
+          git diff --staged --quiet || git commit -m "Kunlik avtomatik yangilanish: $(date -u +%Y-%m-%d)"
+          git push
